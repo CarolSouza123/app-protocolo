@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Protocolo 21D - Painel Oficial</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              500: '#22c55e',
+              600: '#16a34a',
+              900: '#14532d',
+            },
+            dark: {
+              900: '#090d16',
+              800: '#111827',
+              700: '#1f2937'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 0.4; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .animate-pulse-slow {
+      animation: pulse-ring 4s ease-in-out infinite;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-dark-900 text-gray-100 min-h-screen flex flex-col items-center justify-between font-sans antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- TOP BAR DISCRETA -->
+  <header class="w-full max-w-md px-5 py-4 flex items-center justify-between border-b border-gray-800 bg-dark-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="flex items-center space-x-2">
+      <div class="w-3 h-3 rounded-full bg-brand-500 animate-pulse"></div>
+      <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Protocolo Físico 21D</span>
+    </div>
+    <div class="text-[11px] bg-dark-800 border border-gray-700 text-gray-300 px-2.5 py-1 rounded-full">
+      Acesso Privado
+    </div>
+  </header>
+
+  <!-- NOTIFICAÇÃO DISCRETA: MARCO DE 50% (DIA 10) -->
+  <div id="vip-notice" class="hidden w-full max-w-md px-5 pt-3">
+    <div class="flex items-start gap-2 bg-brand-900/20 border border-brand-500/30 rounded-xl px-3.5 py-3">
+      <svg class="w-4 h-4 text-brand-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      <p class="text-[11px] text-gray-300 leading-relaxed flex-1">
+        Você atingiu 50% do condicionamento. Para garantir que sua musculatura não volte a atrofiar após os 21 dias, conheça a <button onclick="switchTab('vip')" class="text-brand-500 font-bold underline">Manutenção VIP</button>.
+      </p>
+      <button onclick="closeVipNotice()" class="text-gray-500 hover:text-white text-sm font-bold leading-none">&times;</button>
+    </div>
+  </div>
+
+  <!-- NAVEGAÇÃO SUPERIOR -->
+  <nav class="w-full max-w-md px-5 pt-3">
+    <div class="grid grid-cols-4 gap-1 bg-dark-800 p-1 rounded-xl border border-gray-800 text-xs font-medium text-gray-400">
+      <button onclick="switchTab('instruction')" id="tab-instruction" class="py-2 rounded-lg text-center transition-all bg-dark-700 text-white font-semibold">
+        1. Localizar
+      </button>
+      <button onclick="switchTab('timer')" id="tab-timer" class="py-2 rounded-lg text-center transition-all">
+        2. Treino 5 Min
+      </button>
+      <button onclick="switchTab('breathing')" id="tab-breathing" class="py-2 rounded-lg text-center transition-all">
+        3. Respiração
+      </button>
+      <button onclick="switchTab('vip')" id="tab-vip" class="py-2 rounded-lg text-center transition-all">
+        <span class="inline-flex items-center justify-center gap-1">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          <span class="text-[10px] leading-tight">Manutenção (VIP)</span>
+        </span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- CONTEÚDO PRINCIPAL (SPA) -->
+  <main class="w-full max-w-md flex-1 px-5 py-4 flex flex-col justify-center">
+
+    <!-- ABA 1: LOCALIZAÇÃO DO MÚSCULO & INSTRUÇÃO PRÉ-TREINO -->
+    <section id="view-instruction" class="space-y-4">
+      <div id="instruction-notice" class="hidden bg-brand-900/20 border border-brand-500/30 rounded-2xl px-4 py-3">
+        <p id="instruction-notice-text" class="text-[11px] text-gray-300 leading-relaxed"></p>
+      </div>
+      <div class="bg-dark-800 border border-gray-800 rounded-2xl p-5 shadow-lg">
+        <div class="flex items-center space-x-2 text-brand-500 mb-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <h2 class="font-bold text-sm tracking-wide text-white">Como Identificar o Músculo Certo</h2>
+        </div>
+        <p class="text-xs text-gray-300 leading-relaxed mb-3">
+          O músculo do controle é o <strong>assoalho pélvico (músculo PC)</strong>. Para encontrá-lo com exatidão física, use a regra clássica:
+        </p>
+        <div class="bg-dark-900 border border-gray-700/60 rounded-xl p-3 text-xs text-gray-300 space-y-2">
+          <p><strong class="text-brand-500">O Teste do Fluxo:</strong> Imagine que você está urinando e precisa travar o jato no meio do caminho sem usar as mãos. O músculo interno que você contrai para segurar esse fluxo é exatamente o que vamos treinar.</p>
+          <p><strong class="text-red-400">O que NÃO fazer:</strong> Não aperte os glúteos, não trave a barriga e nunca prenda a respiração. Apenas o músculo interno de base sobe e contrai.</p>
+        </div>
+      </div>
+
+      <div class="bg-dark-800 border border-gray-800 rounded-2xl p-5 shadow-lg">
+        <h3 class="font-bold text-xs uppercase text-gray-400 tracking-wider mb-2">Em Que Momento Fazer o Treino</h3>
+        <ul class="text-xs text-gray-300 space-y-2.5">
+          <li class="flex items-start space-x-2">
+            <span class="text-brand-500 font-bold">•</span>
+            <span><strong>Uma vez por dia só.</strong> São os 5 minutos do dia, o app libera um treino novo a cada dia.</span>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-brand-500 font-bold">•</span>
+            <span><strong>Escolha um horário fixo</strong> (ao acordar, no almoço ou antes de dormir) e repita sempre no mesmo horário, para virar hábito.</span>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-brand-500 font-bold">•</span>
+            <span>O treino é feito <strong>fora da relação</strong>, com calma. Quem cuida do momento da relação é a aba Respiração.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="bg-dark-800 border border-gray-800 rounded-2xl p-5 shadow-lg">
+        <h3 class="font-bold text-xs uppercase text-gray-400 tracking-wider mb-2">Preparação Antes de Dar o Play</h3>
+        <ul class="text-xs text-gray-300 space-y-2.5">
+          <li class="flex items-start space-x-2">
+            <span class="text-brand-500 font-bold">1.</span>
+            <span>Vá para um quarto silencioso e fique completamente sozinho sem distrações.</span>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-brand-500 font-bold">2.</span>
+            <span><strong>Esvazie a bexiga antes de começar.</strong> Treinar com a bexiga cheia atrapalha a contração correta do músculo.</span>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-brand-500 font-bold">3.</span>
+            <span><strong>Escolha sua postura:</strong> Deitado de costas na cama (mais fácil para iniciantes), sentado firme em uma cadeira ou de pé com pés alinhados.</span>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-brand-500 font-bold">4.</span>
+            <span>Solte o ar, relaxe os ombros e só então avance para o treino de 5 minutos.</span>
+          </li>
+        </ul>
+        <button onclick="confirmInstruction()" class="w-full mt-4 bg-brand-600 hover:bg-brand-500 text-white font-semibold py-2.5 rounded-xl text-xs transition">
+          Entendido, ir para o Treino Diário →
+        </button>
+      </div>
+    </section>
+
+    <!-- ABA 2: TREINO DIÁRIO DE 5 MINUTOS (COM PROGRESSO DE 21 DIAS) -->
+    <section id="view-timer" class="hidden flex flex-col items-center justify-center space-y-4">
+
+      <!-- CARD DE PROGRESSO GERAL (da versão 1) -->
+      <div class="w-full bg-dark-800 border border-gray-800 rounded-2xl p-4 shadow-lg">
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <p class="text-[11px] text-gray-400 font-medium">Condicionamento de Base</p>
+            <h2 id="hub-phase-title" class="text-sm font-bold text-white mt-0.5">Fase 1: Isolamento</h2>
+          </div>
+          <span id="hub-day-tag" class="text-[11px] font-bold text-brand-500 bg-brand-500/10 border border-brand-500/20 px-2.5 py-1 rounded-lg">Dia 1 de 21</span>
+        </div>
+        <div class="w-full bg-dark-900 h-2 rounded-full overflow-hidden mb-2">
+          <div id="hub-progress-bar" class="bg-brand-500 h-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <p class="text-[11px] text-gray-400 text-right"><span id="completed-count">0</span> de 21 sessões concluídas</p>
+      </div>
+
+      <!-- SELETOR DE DIAS 1 A 21 (da versão 1) -->
+      <div class="w-full">
+        <div class="flex justify-between items-center mb-2 px-1">
+          <label class="text-xs font-semibold text-gray-300">Escolha o Dia da Sessão:</label>
+          <span class="text-[11px] text-gray-500">5 min diários</span>
+        </div>
+        <div id="days-carousel" class="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+          <!-- Gerado via JS de 1 a 21 -->
+        </div>
+        <p id="session-desc" class="text-[11px] text-gray-400 mt-2 px-1 text-center"></p>
+      </div>
+
+      <!-- TIMER DISPLAY -->
+      <div class="relative w-64 h-64 flex flex-col items-center justify-center rounded-full border-4 border-gray-800 bg-dark-800/60 shadow-2xl">
+        <div id="progress-indicator" class="text-xs uppercase tracking-widest font-bold text-gray-400 mb-1">Pronto</div>
+        <div id="action-text" class="text-2xl font-black text-gray-200 uppercase tracking-wide">Iniciar</div>
+        <div id="countdown-display" class="text-4xl font-mono font-bold text-brand-500 mt-1">05:00</div>
+        <div id="cycle-count" class="text-[11px] text-gray-400 mt-2">Ciclo: 0 / 43</div>
+      </div>
+
+      <!-- AVISO DE EXECUÇÃO -->
+      <p id="instruction-hint" class="text-xs text-center text-gray-400 px-4 h-8 flex items-center justify-center">
+        Acomode-se confortavelmente e aperte o botão para começar.
+      </p>
+
+      <!-- BOTÕES DE CONTROLE (INICIAR / PAUSAR / REINICIAR) -->
+      <div class="w-full grid grid-cols-2 gap-3 pt-2">
+        <button id="btn-toggle" onclick="toggleTimer()" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-brand-900/20">
+          Começar Treino
+        </button>
+        <button id="btn-reset" onclick="resetTimer()" class="w-full bg-dark-800 hover:bg-dark-700 border border-gray-700 text-gray-300 font-bold py-3.5 rounded-xl text-sm transition flex items-center justify-center space-x-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span>Reiniciar</span>
+        </button>
+      </div>
+
+      <!-- BOTÃO DE MANUTENÇÃO (RECORRÊNCIA) -->
+      <button onclick="openModal()" class="w-full text-center text-[11px] text-gray-400 hover:text-brand-500 pt-2 transition">
+        Precisa de suporte contínuo? <span class="underline">Plano de Manutenção Ativo</span>
+      </button>
+    </section>
+
+    <!-- ABA 3: RESPIRAÇÃO PARASSIMPÁTICA -->
+    <section id="view-breathing" class="hidden flex flex-col items-center justify-center space-y-6">
+      <div class="text-center">
+        <h3 class="font-bold text-sm text-gray-200 uppercase tracking-wider">Respiração Anti-Disparo</h3>
+        <p class="text-xs text-gray-400 mt-1 max-w-xs">Use esta técnica diafragmática para desarmar a adrenalina involuntária.</p>
+      </div>
+
+      <div class="w-full bg-dark-800 border border-gray-800 rounded-xl p-4 text-xs text-gray-300 space-y-2.5">
+        <p class="font-bold text-white uppercase tracking-wider text-[11px]">Quando usar</p>
+        <p><strong class="text-brand-500">Antes da relação:</strong> uns 10 minutos antes, para chegar ao momento já calmo.</p>
+        <p><strong class="text-brand-500">Quando a adrenalina subir:</strong> sentiu que o coração acelerou e a tensão subiu, pare e respire com o guia.</p>
+        <p><strong class="text-brand-500">Durante o dia, como treino:</strong> pode e deve treinar quantas vezes quiser. É esse treino durante o dia que faz a respiração virar automática, para ela funcionar na hora H sem você precisar pensar. Não conta como o treino do dia e não tem limite de uso.</p>
+      </div>
+
+      <div class="w-full bg-dark-800 border border-gray-800 rounded-xl p-4 text-xs text-gray-300 space-y-2.5">
+        <p class="font-bold text-white uppercase tracking-wider text-[11px]">Como usar</p>
+        <p><strong class="text-brand-500">1.</strong> Sente-se ou deite-se confortável e solte os ombros e a barriga.</p>
+        <p><strong class="text-brand-500">2.</strong> Acompanhe o círculo: quando ele crescer, <strong>inspire pelo nariz em 4 segundos</strong>, enchendo a barriga, sem levantar o peito.</p>
+        <p><strong class="text-brand-500">3.</strong> <strong>Segure o ar por 4 segundos</strong>, sem fazer força e sem travar o corpo.</p>
+        <p><strong class="text-brand-500">4.</strong> Quando o círculo diminuir, <strong>solte o ar devagar pela boca em 6 segundos</strong>, esvaziando a barriga e soltando toda a tensão junto.</p>
+        <p><strong class="text-brand-500">5.</strong> Repita por uns 2 minutos. O erro mais comum é prender o ar com força ou respirar rápido e curto pelo peito, isso aumenta a tensão em vez de baixar.</p>
+      </div>
+
+      <!-- CÍRCULO DE RESPIRAÇÃO -->
+      <div class="relative w-56 h-56 flex items-center justify-center">
+        <div id="breath-circle" class="w-36 h-36 rounded-full bg-brand-900/30 border-2 border-brand-500 flex items-center justify-center transition-all duration-1000">
+          <span id="breath-text" class="text-sm font-bold uppercase text-brand-500 tracking-wider">Inspire</span>
+        </div>
+      </div>
+
+      <div class="w-full bg-dark-800 border border-gray-800 rounded-xl p-3 text-xs text-gray-400 text-center">
+        Ciclo Fisiológico: 4s pelo nariz • 4s segura • 6s solta pela boca
+      </div>
+    </section>
+
+    <!-- ABA 4: MANUTENÇÃO (VIP) -->
+    <section id="view-vip" class="hidden space-y-4">
+
+      <!-- Visão do não assinante: apresentação do plano -->
+      <div id="vip-locked" class="space-y-4">
+        <div class="bg-dark-800 border border-gray-800 rounded-2xl p-5 shadow-lg text-center">
+          <div class="w-12 h-12 mx-auto rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-500 mb-3">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          </div>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-brand-500">Área do Assinante</span>
+          <h2 class="text-base font-bold text-white mt-1">Manutenção (VIP)</h2>
+          <p class="text-xs text-gray-400 mt-1 leading-relaxed">
+            Os 21 dias constroem o controle. A manutenção é o que impede a musculatura de voltar a atrofiar depois do ciclo.
+          </p>
+        </div>
+
+        <div class="bg-dark-800 border border-gray-800 rounded-2xl p-5 shadow-lg space-y-4">
+          <h3 class="font-bold text-xs uppercase text-gray-400 tracking-wider">O que o Plano de Manutenção entrega</h3>
+
+          <div class="flex items-start gap-3">
+            <span class="text-brand-500 font-bold text-sm">1.</span>
+            <div>
+              <p class="text-xs font-bold text-white">Protocolo de Manutenção Semanal</p>
+              <p class="text-[11px] text-gray-400 leading-relaxed">Apenas 2 treinos rápidos de 5 min por semana para não perder o tônus conquistado nos 21 dias.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3">
+            <span class="text-brand-500 font-bold text-sm">2.</span>
+            <div>
+              <p class="text-xs font-bold text-white">3 Áudios Guiados de "SOS Pré-Hora H"</p>
+              <p class="text-[11px] text-gray-400 leading-relaxed">Áudios parassimpáticos de 2 minutos para ouvir antes do momento e desarmar a adrenalina.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3">
+            <span class="text-brand-500 font-bold text-sm">3.</span>
+            <div>
+              <p class="text-xs font-bold text-white">Módulo de Exercícios Dinâmicos em Pé</p>
+              <p class="text-[11px] text-gray-400 leading-relaxed">Exercícios em pé para manter o controle ativo na rotina real, fora da posição de treino.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <!-- PLANO MENSAL (placeholder: substituir pelo link real do Mercado Pago) -->
+          <a href="https://www.mercadopago.com.br" target="_blank" class="block p-3.5 rounded-xl border border-gray-700 bg-dark-800 hover:border-brand-500 transition">
+            <div class="flex justify-between items-center">
+              <div>
+                <div class="text-xs font-bold text-white">Plano Mensal</div>
+                <div class="text-[11px] text-gray-400">Cobrança recorrente no cartão</div>
+              </div>
+              <div class="text-sm font-bold text-brand-500">R$ 19,90<span class="text-[10px] text-gray-400">/mês</span></div>
+            </div>
+          </a>
+
+          <!-- PASSE TRIMESTRAL PIX (placeholder: substituir pelo link real do Mercado Pago) -->
+          <a href="https://www.mercadopago.com.br" target="_blank" class="block p-3.5 rounded-xl border-2 border-brand-500 bg-brand-900/20 hover:bg-brand-900/30 transition">
+            <div class="flex justify-between items-center">
+              <div>
+                <div class="text-xs font-bold text-white flex items-center gap-1">
+                  Passe Trimestral Pix
+                  <span class="text-[9px] bg-brand-500 text-black px-1 rounded font-black">POPULAR</span>
+                </div>
+                <div class="text-[11px] text-gray-300">Acesso livre por 90 dias</div>
+              </div>
+              <div class="text-sm font-bold text-brand-500">R$ 49,90</div>
+            </div>
+          </a>
+
+          <p class="text-[10px] text-center text-gray-400">Cobrança 100% segura e discreta no extrato bancário.</p>
+        </div>
+      </div>
+
+      <!-- Visão do assinante: conteúdo liberado -->
+      <div id="vip-unlocked" class="hidden space-y-4">
+        <div class="bg-dark-800 border border-brand-500/30 rounded-2xl p-5 shadow-lg">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-brand-500">Assinatura Ativa</span>
+          <h2 class="text-base font-bold text-white mt-1">Sua Manutenção (VIP)</h2>
+          <ul class="text-xs text-gray-300 space-y-2.5 mt-3">
+            <li>Protocolo de Manutenção Semanal: 2 treinos de 5 min por semana.</li>
+            <li>3 Áudios Guiados de "SOS Pré-Hora H": áudios de 2 minutos.</li>
+            <li>Módulo de Exercícios Dinâmicos em Pé.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL DE ASSINATURA / MANUTENÇÃO (MERCADO PAGO) -->
+  <div id="modal-recurrence" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center px-4">
+    <div class="bg-dark-800 border border-gray-700 w-full max-w-sm rounded-2xl p-6 shadow-2xl relative text-left">
+      <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold">&times;</button>
+      <div class="text-brand-500 text-xs font-bold uppercase tracking-wider mb-1">Manutenção do Controle</div>
+      <h3 class="text-lg font-extrabold text-white mb-2">Mantenha a Musculatura Ativa</h3>
+      <p class="text-xs text-gray-300 leading-relaxed mb-4">
+        Músculo destreinado perde a sustentação em 30 a 45 dias. Garanta seu acesso permanente aos áudios guiados e às fichas de manutenção:
+      </p>
+
+      <div class="space-y-3 mb-5">
+        <!-- PLANO MENSAL -->
+        <a href="https://www.mercadopago.com.br" target="_blank" class="block p-3 rounded-xl border border-gray-700 bg-dark-900 hover:border-brand-500 transition">
+          <div class="flex justify-between items-center">
+            <div>
+              <div class="text-xs font-bold text-white">Plano Mensal Contínuo</div>
+              <div class="text-[11px] text-gray-400">Apenas R$ 0,66 por dia</div>
+            </div>
+            <div class="text-sm font-bold text-brand-500">R$ 19,90/mês</div>
+          </div>
+        </a>
+
+        <!-- PLANO TRIMESTRAL PIX -->
+        <a href="https://www.mercadopago.com.br" target="_blank" class="block p-3 rounded-xl border-2 border-brand-500 bg-brand-900/20 hover:bg-brand-900/30 transition">
+          <div class="flex justify-between items-center">
+            <div>
+              <div class="text-xs font-bold text-white flex items-center gap-1">
+                Passe Trimestral Pix 
+                <span class="text-[9px] bg-brand-500 text-black px-1 rounded font-black">POPULAR</span>
+              </div>
+              <div class="text-[11px] text-gray-300">Acesso livre por 90 dias</div>
+            </div>
+            <div class="text-sm font-bold text-brand-500">R$ 49,90</div>
+          </div>
+        </a>
+      </div>
+
+      <p class="text-[10px] text-center text-gray-400">Cobrança 100% segura e discreta no extrato bancário.</p>
+    </div>
+  </div>
+
+  <!-- RODAPÉ DISCRETO -->
+  <footer class="w-full max-w-md py-4 text-center text-[10px] text-gray-400 border-t border-gray-900">
+    Protocolo de Condicionamento Neuromuscular • Versão PWA 2.4
+  </footer>
+
+  <!-- LÓGICA JAVASCRIPT NATIVA -->
+  <script>
+    // Gerador de Bipes com Web Audio API
+    let audioCtx = null;
+    function playBeep(freq = 600, duration = 0.15) {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    // Navegação entre abas
+    function switchTab(tab) {
+      stopBreathingCycle();
+      ['instruction', 'timer', 'breathing', 'vip'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.add('hidden');
+        document.getElementById(`tab-${t}`).className = 'py-2 rounded-lg text-center transition-all text-gray-400';
+      });
+
+      document.getElementById('view-' + tab).classList.remove('hidden');
+      document.getElementById('tab-' + tab).className = 'py-2 rounded-lg text-center transition-all bg-dark-700 text-white font-semibold';
+
+      if (tab === 'breathing') startBreathingCycle();
+    }
+
+    // Notificação discreta do marco de 50% (Dia 10)
+    function showVipNotice() {
+      document.getElementById('vip-notice').classList.remove('hidden');
+    }
+    function closeVipNotice() {
+      document.getElementById('vip-notice').classList.add('hidden');
+    }
+
+    // Porta de entrada do treino: nos dias iniciais, a pessoa precisa passar
+    // pela aba Localizar e tocar em "Entendido" antes de conseguir iniciar.
+    const REQUIRED_INSTRUCTION_DAYS = [1, 2];
+    let pendingInstructionDay = null;
+
+    function instructionSeenFor(day) {
+      return localStorage.getItem('instruction_seen_day_' + day) === 'true';
+    }
+
+    function requiresInstruction(day) {
+      return REQUIRED_INSTRUCTION_DAYS.includes(day) && !instructionSeenFor(day);
+    }
+
+    function requireInstruction(day) {
+      pendingInstructionDay = day;
+      document.getElementById('instruction-notice-text').innerText =
+        `Antes de iniciar o Dia ${day}, veja como localizar o músculo certo. É rápido e evita treinar o músculo errado.`;
+      document.getElementById('instruction-notice').classList.remove('hidden');
+      switchTab('instruction');
+    }
+
+    function confirmInstruction() {
+      const dayToMark = pendingInstructionDay || currentDay;
+      if (REQUIRED_INSTRUCTION_DAYS.includes(dayToMark)) {
+        localStorage.setItem('instruction_seen_day_' + dayToMark, 'true');
+      }
+      pendingInstructionDay = null;
+      document.getElementById('instruction-notice').classList.add('hidden');
+      switchTab('timer');
+      document.getElementById('instruction-hint').innerText = "Músculo localizado. Agora é só apertar Começar Treino.";
+    }
+
+    // Estado do assinante da Manutenção (VIP): sem assinatura, mostra a apresentação do plano
+    function renderVipStatus() {
+      const isSubscriber = localStorage.getItem('vip_subscriber') === 'true';
+      document.getElementById('vip-locked').classList.toggle('hidden', isSubscriber);
+      document.getElementById('vip-unlocked').classList.toggle('hidden', !isSubscriber);
+    }
+
+    // Configuração dos 21 dias em 3 fases progressivas.
+    // Ciclos calculados para fechar exatamente os 5 minutos reais (300 segundos):
+    // Fase 1: 3s + 4s = 7s por ciclo x 43 ciclos, com o último ciclo 1s mais curto no relaxamento = 300s exatos
+    // Fase 2: 5s + 5s = 10s por ciclo x 30 ciclos = 300s exatos
+    // Fase 3: 7s + 5s = 12s por ciclo x 25 ciclos = 300s exatos
+    const phaseConfigs = {
+      1: { contract: 3, relax: 4, cycles: 43, label: "Fase 1: Isolamento" },
+      2: { contract: 5, relax: 5, cycles: 30, label: "Fase 2: Resistência" },
+      3: { contract: 7, relax: 5, cycles: 25, label: "Fase 3: Controle Total" }
+    };
+
+    function phaseForDay(day) {
+      if (day <= 7) return 1;
+      if (day <= 14) return 2;
+      return 3;
+    }
+
+    const protocolDays = Array.from({ length: 21 }, (_, i) => {
+      const day = i + 1;
+      const phase = phaseForDay(day);
+      const cfg = phaseConfigs[phase];
+      return { day, phase, contract: cfg.contract, relax: cfg.relax, totalCycles: cfg.cycles, phaseLabel: cfg.label };
+    });
+
+    // Estado da aplicação (progresso salvo no aparelho, da versão 1)
+    let currentDay = 1;
+    let completedDays = JSON.parse(localStorage.getItem('completed_days')) || [];
+    // Data (ano-mês-dia, horário do aparelho) em que cada dia foi concluído.
+    // É essa data que trava o próximo dia: um treino por dia, o próximo libera no dia seguinte.
+    let completedDates = JSON.parse(localStorage.getItem('completed_day_dates')) || {};
+
+    function todayStr() {
+      const now = new Date();
+      const month = (now.getMonth() + 1).toString().padStart(2, '0');
+      const date = now.getDate().toString().padStart(2, '0');
+      return `${now.getFullYear()}-${month}-${date}`;
+    }
+
+    function trainedToday() {
+      return Object.values(completedDates).includes(todayStr());
+    }
+
+    function nextPendingDay() {
+      const pending = protocolDays.find(d => !completedDays.includes(d.day));
+      return pending ? pending.day : null;
+    }
+
+    // Um dia só está liberado para treinar se for o próximo pendente
+    // e nenhum treino tiver sido concluído hoje.
+    function isDayUnlocked(day) {
+      if (completedDays.includes(day)) return false;
+      return day === nextPendingDay() && !trainedToday();
+    }
+
+    function dayState(day) {
+      if (completedDays.includes(day)) return 'done';
+      return isDayUnlocked(day) ? 'open' : 'locked';
+    }
+
+    function renderDaysCarousel() {
+      const container = document.getElementById('days-carousel');
+      container.innerHTML = '';
+      protocolDays.forEach(item => {
+        const state = dayState(item.day);
+        const isSelected = item.day === currentDay;
+        const btn = document.createElement('button');
+        btn.className = `flex-shrink-0 w-12 h-14 rounded-xl flex flex-col items-center justify-center border transition-all ${
+          state === 'locked'
+            ? 'bg-dark-900/60 border-gray-800 text-gray-600 opacity-60 cursor-not-allowed'
+            : isSelected
+              ? 'bg-brand-600 border-brand-500 text-white font-bold shadow-lg shadow-brand-900/30'
+              : state === 'done'
+                ? 'bg-dark-800 border-brand-500/50 text-brand-500'
+                : 'bg-dark-800/60 border-gray-700/60 text-gray-400 hover:border-gray-600'
+        }`;
+        btn.onclick = () => {
+          if (state === 'locked') {
+            showLockHint(item.day);
+          } else {
+            selectDay(item.day);
+          }
+        };
+        btn.innerHTML = state === 'locked'
+          ? `
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          <span class="text-sm font-extrabold">${item.day}</span>
+        `
+          : `
+          <span class="text-[10px] uppercase font-medium">Dia</span>
+          <span class="text-sm font-extrabold">${item.day}${state === 'done' ? ' ✓' : ''}</span>
+        `;
+        container.appendChild(btn);
+      });
+    }
+
+    function showLockHint(day) {
+      document.getElementById('session-desc').innerText =
+        `O Dia ${day} está bloqueado. É um treino por dia: cada dia novo libera no dia seguinte, a partir das 00:01.`;
+    }
+
+    function updateHubStats() {
+      const count = completedDays.length;
+      document.getElementById('completed-count').innerText = count;
+      const pct = Math.min((count / 21) * 100, 100);
+      document.getElementById('hub-progress-bar').style.width = `${pct}%`;
+    }
+
+    function selectDay(dayNumber) {
+      currentDay = dayNumber;
+      const data = protocolDays.find(d => d.day === dayNumber);
+      document.getElementById('hub-day-tag').innerText = `Dia ${data.day} de 21`;
+      document.getElementById('hub-phase-title').innerText = data.phaseLabel;
+      let desc = `Sessão do Dia ${data.day}: ${data.contract}s de contração x ${data.relax}s de relaxamento, ${data.totalCycles} ciclos em 5 minutos.`;
+      if (completedDays.includes(data.day)) {
+        desc += ' Dia já concluído, não precisa repetir.';
+      } else if (!isDayUnlocked(data.day)) {
+        desc += ' Bloqueado por hoje: o próximo treino libera no dia seguinte, a partir das 00:01.';
+      }
+      document.getElementById('session-desc').innerText = desc;
+      renderDaysCarousel();
+      resetTimer();
+      updateStartButton();
+      if (dayNumber === 10) showVipNotice();
+    }
+
+    // O botão de iniciar reflete a trava: dia concluído ou dia ainda bloqueado não treina
+    function updateStartButton() {
+      const btn = document.getElementById('btn-toggle');
+      if (completedDays.includes(currentDay)) {
+        btn.innerText = "Sessão já concluída";
+        btn.className = "w-full bg-dark-700 border border-gray-700 text-gray-400 font-bold py-3.5 rounded-xl text-sm transition cursor-not-allowed";
+      } else if (!isDayUnlocked(currentDay)) {
+        btn.innerText = "Libera no próximo dia, às 00:01";
+        btn.className = "w-full bg-dark-700 border border-gray-700 text-gray-400 font-bold py-3.5 rounded-xl text-sm transition cursor-not-allowed";
+      }
+    }
+
+    // Cronômetro guiado de 5 minutos
+    let timerInterval = null;
+    let isRunning = false;
+    let totalSeconds = 300;
+    let subTimer = 0;
+    let state = 'idle'; // 'contract' ou 'relax'
+    let currentCycle = 0;
+
+    function currentConfig() {
+      return protocolDays.find(d => d.day === currentDay);
+    }
+
+    function sessionTotalSeconds() {
+      const cfg = currentConfig();
+      // Na Fase 1 o último ciclo tem 1s a menos no relaxamento, fechando os 300s exatos
+      const lastCycleCut = cfg.phase === 1 ? 1 : 0;
+      return (cfg.contract + cfg.relax) * cfg.totalCycles - lastCycleCut;
+    }
+
+    function formatClock(total) {
+      const m = Math.floor(total / 60).toString().padStart(2, '0');
+      const s = (total % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function toggleTimer() {
+      if (isRunning) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    }
+
+    function startTimer() {
+      // Trava de proteção: um treino por dia, sem pular e sem repetir no mesmo dia
+      if (state === 'idle' && !isDayUnlocked(currentDay)) {
+        document.getElementById('instruction-hint').innerText = completedDays.includes(currentDay)
+          ? "Este dia já foi concluído. O próximo treino libera no dia seguinte, a partir das 00:01."
+          : "O treino de hoje já foi feito. O próximo dia libera amanhã, a partir das 00:01.";
+        return;
+      }
+      // Nos Dias 1 e 2, primeiro passa pela aba Localizar
+      if (state === 'idle' && requiresInstruction(currentDay)) {
+        requireInstruction(currentDay);
+        return;
+      }
+      const cfg = currentConfig();
+      isRunning = true;
+      document.getElementById('btn-toggle').innerText = "Pausar Sessão";
+      document.getElementById('btn-toggle').className = "w-full bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-3.5 rounded-xl text-sm transition";
+
+      if (state === 'idle') {
+        state = 'contract';
+        subTimer = cfg.contract;
+        currentCycle = 1;
+        triggerContractVisual();
+      }
+
+      timerInterval = setInterval(() => {
+        totalSeconds--;
+        subTimer--;
+
+        document.getElementById('countdown-display').innerText = formatClock(Math.max(totalSeconds, 0));
+        document.getElementById('cycle-count').innerText = `Ciclo: ${currentCycle} / ${cfg.totalCycles}`;
+
+        if (subTimer <= 0) {
+          if (state === 'contract') {
+            state = 'relax';
+            // Fase 1, último ciclo: relaxamento 1s mais curto para fechar os 300s
+            subTimer = cfg.relax - ((cfg.phase === 1 && currentCycle === cfg.totalCycles) ? 1 : 0);
+            triggerRelaxVisual();
+          } else {
+            if (currentCycle >= cfg.totalCycles) {
+              finishSession();
+              return;
+            }
+            state = 'contract';
+            subTimer = cfg.contract;
+            currentCycle++;
+            triggerContractVisual();
+          }
+        }
+
+        if (totalSeconds <= 0) {
+          finishSession();
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      document.getElementById('btn-toggle').innerText = "Continuar";
+      document.getElementById('btn-toggle').className = "w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3.5 rounded-xl text-sm transition";
+      document.getElementById('progress-indicator').innerText = "Pausado";
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      totalSeconds = sessionTotalSeconds();
+      subTimer = 0;
+      state = 'idle';
+      currentCycle = 0;
+
+      document.getElementById('countdown-display').innerText = formatClock(totalSeconds);
+      document.getElementById('action-text').innerText = "INICIAR";
+      document.getElementById('action-text').className = "text-2xl font-black text-gray-200 uppercase tracking-wide";
+      document.getElementById('progress-indicator').innerText = "Pronto";
+      document.getElementById('cycle-count').innerText = `Ciclo: 0 / ${currentConfig().totalCycles}`;
+      document.getElementById('instruction-hint').innerText = "Acomode-se confortavelmente e aperte o botão para começar.";
+
+      document.getElementById('btn-toggle').innerText = "Começar Treino";
+      document.getElementById('btn-toggle').className = "w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-brand-900/20";
+    }
+
+    function finishSession() {
+      const finishedDay = currentDay;
+      clearInterval(timerInterval);
+      isRunning = false;
+      playBeep(880, 0.4);
+      document.getElementById('action-text').innerText = "CONCLUÍDO";
+      document.getElementById('progress-indicator').innerText = "Missão Cumprida";
+      document.getElementById('countdown-display').innerText = "00:00";
+
+      if (!completedDays.includes(currentDay)) {
+        completedDays.push(currentDay);
+        localStorage.setItem('completed_days', JSON.stringify(completedDays));
+        completedDates[currentDay] = todayStr();
+        localStorage.setItem('completed_day_dates', JSON.stringify(completedDates));
+      }
+      updateHubStats();
+      renderDaysCarousel();
+      alert(`Parabéns! Sessão do Dia ${currentDay} concluída com sucesso.`);
+
+      if (currentDay < 21) {
+        selectDay(currentDay + 1);
+      } else {
+        resetTimer();
+      }
+      if (finishedDay === 10) showVipNotice();
+    }
+
+    function triggerContractVisual() {
+      playBeep(750, 0.15);
+      const act = document.getElementById('action-text');
+      act.innerText = "CONTRAIA";
+      act.className = "text-3xl font-black text-brand-500 uppercase tracking-wider animate-pulse";
+      document.getElementById('progress-indicator').innerText = "Puxe para cima e segure";
+      document.getElementById('instruction-hint').innerText = "Foque apenas no músculo interno. Não trave o ar.";
+    }
+
+    function triggerRelaxVisual() {
+      playBeep(450, 0.15);
+      const act = document.getElementById('action-text');
+      act.innerText = "SOLTE";
+      act.className = "text-3xl font-black text-blue-400 uppercase tracking-wider";
+      document.getElementById('progress-indicator').innerText = "Relaxe totalmente";
+      document.getElementById('instruction-hint').innerText = "Solte a musculatura 100%. Respire normalmente.";
+    }
+
+    // Modal
+    function openModal() { document.getElementById('modal-recurrence').classList.remove('hidden'); }
+    function closeModal() { document.getElementById('modal-recurrence').classList.add('hidden'); }
+
+    // Respiração
+    let breathInterval = null;
+    let breathTimeouts = [];
+    function stopBreathingCycle() {
+      if (breathInterval) clearInterval(breathInterval);
+      breathInterval = null;
+      breathTimeouts.forEach(t => clearTimeout(t));
+      breathTimeouts = [];
+    }
+    function startBreathingCycle() {
+      stopBreathingCycle();
+      const circle = document.getElementById('breath-circle');
+      const text = document.getElementById('breath-text');
+
+      function runCycle() {
+        // Inspire 4s
+        text.innerText = "Inspire (4s)";
+        circle.style.transform = "scale(1.35)";
+        circle.style.backgroundColor = "rgba(34, 197, 94, 0.25)";
+
+        breathTimeouts.push(setTimeout(() => {
+          // Retenha 4s
+          text.innerText = "Segure (4s)";
+          circle.style.backgroundColor = "rgba(59, 130, 246, 0.25)";
+
+          breathTimeouts.push(setTimeout(() => {
+            // Expire 6s
+            text.innerText = "Solte (6s)";
+            circle.style.transform = "scale(1)";
+            circle.style.backgroundColor = "rgba(17, 24, 39, 0.5)";
+          }, 4000));
+
+        }, 4000));
+      }
+
+      runCycle();
+      breathInterval = setInterval(runCycle, 14000);
+    }
+
+    // Inicialização: retoma o progresso e posiciona no próximo dia pendente
+    function initApp() {
+      updateHubStats();
+      renderVipStatus();
+      const nextDay = protocolDays.find(d => !completedDays.includes(d.day));
+      selectDay(nextDay ? nextDay.day : 1);
+    }
+    window.onload = initApp;
+  </script>
+</body>
+</html>
